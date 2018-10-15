@@ -63,16 +63,17 @@ public class NodeImpl extends UnicastRemoteObject implements Node {
 	private boolean alive = true;
 
 	/** Time between each stabilization/fix fingerstable */
-	private int timeToCheck = 5000; //todo à modifier si ça bug //5secondes
+	private int timeToCheck = 500; //todo à modifier si ça bug //5secondes
 
 	public NodeImpl() throws RemoteException {
 	}
 
 	public NodeImpl(String ip) throws RemoteException {
 		this(ip, null, null);
-		successor = null;
-		predecessor = null;
+		successor = this;
+		predecessor = this;
 
+		//this(ip,this,this);
         // fill fingertables from
 		for (int i = 1; i < BootStrap.SPACESIZE; i++) //todo corriger : (int i = 1; en int i = 0 ? ..
 			fingersTable[i] = this;
