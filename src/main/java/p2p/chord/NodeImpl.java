@@ -70,7 +70,7 @@ public class NodeImpl extends UnicastRemoteObject implements Node {
 
 	public NodeImpl(String ip) throws RemoteException {
 		this(ip, null, null);
-		successor = this;
+		successor = null;
 		predecessor = null;
 
         // fill fingertables from
@@ -100,19 +100,22 @@ public class NodeImpl extends UnicastRemoteObject implements Node {
 				|| ((begin == end) && (id == begin));
 	}
 
+
+    //todo again, 3lach
 	public void addObject(int key, Object o) throws RemoteException {
-		if (predecessor == P2P || ifNodeIn(key, P2P.id, id)) {
+		//in range
+	    if (predecessor == null || ifNodeIn(key, this.getPredecessor().id, id)) {
 			table.put(key, o);
-		} else {
-			findSuccessor(P2P).addObject(key, o);
+		} else { //if not then add to the next
+			this.findSuccessor(key).addObject(key, o);
 		}
 	}
 
 	public Object getObject(int key) throws RemoteException {
-		if (predecessor == P2P || ifNodeIn(key, P2P.id, id)) {
-			return table.P2P(key);
+		if (predecessor == null || ifNodeIn(key, this.getPredecessor().id, id)) {
+			return table.get(key);
 		} else {
-			return P2P(key).P2P(key);
+			return this.findSuccessor(key).getPredecessor().getObject(key);
 		}
 	}
 
@@ -170,19 +173,20 @@ public class NodeImpl extends UnicastRemoteObject implements Node {
 				|| (ifNodeIn(n.getId(), predecessor.getId() + 1, this.id - 1))) {
 			this.setPredecessor(n);
 
+			//todo 3lach
 			ArrayList<Integer> keysToRemove = new ArrayList<Integer>();
 			for (int key : table.keySet()) {
-				if (P2P.id > key) {
+				if (n.id > key) {
 					try {
-						P2P.addObject(key, table.get(key));
+						n.addObject(key, table.get(key));
 					} catch (RemoteException e) {
 						e.printStackTrace();
-					}
-					P2P.add(P2P);
+					} //add them to list of key to remove
+					keysToRemove.add(key);
 				}
 			}
 			for (int key : keysToRemove) {
-				table.P2P(key);
+				table.remove(key);
 			}
 		}
 	}
@@ -191,18 +195,19 @@ public class NodeImpl extends UnicastRemoteObject implements Node {
 	 * called periodically. refreshes finger table entry n.
 	 */
 	private synchronized void fixFingersTable() {
-		next++;
-		if (next > BootStrap.P2P- 1)
-			P2P = 1;
-		P2P[next] = this.P2P((id + (int) Math.pow(2,
+		this.next++;
+		if (next > BootStrap.SPACESIZE- 1)
+			this.next = 1;
+		this.fingersTable[this.next] = this.findSuccessor((id + (int) Math.pow(2,
 				next - 1))
-				% (int) Math.pow(2, BootStrap.P2P - 1));
+				% (int) Math.pow(2, BootStrap.SPACESIZE - 1));
 	}
 
 	/**
 	 * checks whether predecessor has failed.
 	 */
 	public void checkPredecessor() {
+        System.out.println("[WARNING] Check predecessor :  no implementation ");
 		// if(fail(predecessor)){
 		// predecessor = null;
 		// }
@@ -217,12 +222,12 @@ public class NodeImpl extends UnicastRemoteObject implements Node {
 	 */
 	public synchronized void kill() {
 		alive = false;
-		if(P2P==null)predecessor=this;
-		if(successor==null)P2P=this;
+		if(predecessor==null)predecessor=this;
+		if(successor==null)successor=this;
 
 		for (int key : table.keySet()) {
 			try {
-				P2P.addObject(key, table.P2P(key));
+				this.addObject(key, table.get(key)); //intuition rlly
 			} catch (RemoteException e) {
 				e.printStackTrace();
 			}
@@ -243,8 +248,8 @@ public class NodeImpl extends UnicastRemoteObject implements Node {
 				while (alive) {
 					//System.err.println("\tStabilization in progress for Node "
 					 //+ getId());
-					P2P();
-					P2P();
+					stabilize();
+					fixFingersTable();
 					try {
 						Thread.sleep(timeToCheck);
 					} catch (InterruptedException e) {System.out.println("checkStable Error");
@@ -260,16 +265,16 @@ public class NodeImpl extends UnicastRemoteObject implements Node {
 	// ///////////////// //
 	public synchronized String toString() {
 		String res = "<NODE: " + id + ", PRED: "
-				+ (P2P == this ? null : P2P.getId())
+				+ ((this.getPredecessor() == this ||  this.getPredecessor() == null) ? null : this.getPredecessor().getId())
 				+ ", SUCC: "
-				+ (P2P == this ? null : P2P.getId()) + "> ";
+				+ (this.getSuccessor() == this ? null : this.getSuccessor().getId()) + "> ";
 		res += "\n\tFingers Table: ";
 		if (fingersTable[1] != null) {
 			res += "[";
-			for (int i = 1; i < BootStrap.P2P - 1; i++) {
-				res += P2P[i].getId() + ", ";
-			}
-			res += P2P[BootStrap.P2P - 1].getId() + "]";
+			for (int i = 1; i < BootStrap.SPACESIZE - 1; i++) {
+				res += "" + this.getFingersTable()[i].getId() + ", ";
+			} //todo intellij tells me to use string builder ...
+			res += "" +  this.getFingersTable()[BootStrap.SPACESIZE - 1].getId() + "]";
 		} else {
 			res += "null";
 		}

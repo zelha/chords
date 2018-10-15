@@ -41,7 +41,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>chord.BootStrap</mainClass>
+                    <mainClass>p2p.chord.BootStrap</mainClass>
                     <arguments>
                         <argument>foo</argument>
                         <argument>bar</argument>

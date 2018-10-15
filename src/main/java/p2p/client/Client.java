@@ -54,14 +54,14 @@ public class Client {
 				case 1:
 					System.out.print("message = ");
 					Sentence s = new Sentence(stdIn.readLine());
-					int key = s.hashCode() % (int) Math.pow(2, BootStrap. -1);
-					P2P.addObject(key, s);
-					System.out.println("Objet envoy� [key="+key+"].");
+					int key = s.hashCode() % (int) Math.pow(2, BootStrap.SPACESIZE -1);
+					chord.addObject(key, s);
+					System.out.println("Objet envoye [key="+key+"].");
 					break;
 				case 2:
 					System.out.print("key = ");
 					int keytoget = Integer.parseInt(stdIn.readLine().trim());
-					Sentence res = (Sentence) P2P.getObject(keytoget);
+					Sentence res = (Sentence) chord.getObject(keytoget);
 					System.out.println("objet recuper�: " + res);
 					break;
 				case 0:

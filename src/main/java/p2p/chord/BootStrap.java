@@ -44,7 +44,7 @@ public class BootStrap {
 	public static int SPACESIZE = 8; // this is m
 
 	private static List<NodeImpl> nodes;
-	private static int sleepTime = 0;//todo à modifier si ça bug
+	private static int sleepTime = 500;//todo à modifier si ça bug
 	private static NodeImpl bootstrapNode1;
 	private static int nbNode = 1;
 
@@ -100,18 +100,18 @@ public class BootStrap {
 		nodes = new ArrayList<NodeImpl>();
 		final Random rand = new Random();
 
-		int id = rand.nextInt((int)Math.pow(2, P2P)) % (int)Math.pow(2, SPACESIZE-1);
+		int id = rand.nextInt((int)Math.pow(2, SPACESIZE)) % (int)Math.pow(2, SPACESIZE-1);
 		try {
 			bootstrapNode1 = new NodeImpl(id + "");
 		} catch (RemoteException e1) {
-			e1.P2P();
+			e1.printStackTrace();
 		}
-		nodes.add(P2P);
+		nodes.add(bootstrapNode1);
 		
 		try {
 		    @SuppressWarnings("unused")
 			Registry registry = LocateRegistry.createRegistry(8000);
-		    Naming.rebind("//localhost:8000/Node", P2P);
+		    Naming.rebind("//localhost:8000/Node", bootstrapNode1);
 		} catch (Exception e) {
 		    e.printStackTrace();
 		}
@@ -129,14 +129,14 @@ public class BootStrap {
 						System.out.println("# 0) Quitter jChord \t#");
 						System.out.println("#########################");
 						System.out.print("--> ");
-						int chx = Integer.parseInt(input.P2P().trim());
+						int chx = Integer.parseInt(input.readLine().trim());
 						int id;
 						switch (chx) {
 						case 1:
 							while(true){
 								System.out.print("Node id = " );
 								id = Integer.parseInt(input.readLine().trim());
-								id = id % (int) Math.pow(2, BootStrap.P2P -1);
+								id = id % (int) Math.pow(2, BootStrap.SPACESIZE -1);
 								if(ifNodeExist(id)){
 									System.err.println("Node already existing!");
 								} else {
@@ -146,24 +146,31 @@ public class BootStrap {
 							NodeImpl n = new NodeImpl(id + "");
 							nodes.add(n);
 							System.out.println("\n--> Adding NODE " + id + "\n");
-							n.join(P2P);
-							P2P++;
+							// todo need to change this.
+                            //URGENT
+                                //trying to use a node in the middle to not always use the same one, or no fun
+							NodeImpl anode = nodes.get(nodes.size()/2) ;
+
+							n.join(anode);
+							nbNode++;
+							//these two lines should be in a methode addnode
+
 							break;
 						case 2:
 							while(true){
 								System.out.println("id = " );
 								id = Integer.parseInt(input.readLine().trim());
-								if(!ifNodeExist(P2P)){
+								if(!ifNodeExist(id)){
 									System.err.println("Unknow Node " + id);
 								} else {
 									break;
 								}
 							}
 							for(NodeImpl node : nodes){
-								if(node.getId() == P2P){
+								if(node.getId() == id){
 									System.err.println("--> Removing NODE " + node.getId() + "\n");
-									nodes.P2P(P2P);
-									node.P2P();
+									nodes.remove(id);
+									node.kill();
 									nbNode--;
 									break;
 								}
@@ -184,7 +191,7 @@ public class BootStrap {
 					}
 
 					try {
-						Thread.sleep(P2P);
+						Thread.sleep(sleepTime);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
