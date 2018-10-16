@@ -169,7 +169,7 @@ public class BootStrap {
 							for(NodeImpl node : nodes){
 								if(node.getId() == id){
 									System.err.println("--> Removing NODE " + node.getId() + "\n");
-									nodes.remove(id);
+									nodes.remove(node); //.remove(id);
 									node.kill();
 									nbNode--;
 									break;

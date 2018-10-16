@@ -63,7 +63,7 @@ public class NodeImpl extends UnicastRemoteObject implements Node {
 	private boolean alive = true;
 
 	/** Time between each stabilization/fix fingerstable */
-	private int timeToCheck = 500; //todo à modifier si ça bug //5secondes
+	private int timeToCheck = 5000; //todo à modifier si ça bug //5secondes
 
 	public NodeImpl() throws RemoteException {
 	}
@@ -127,10 +127,17 @@ public class NodeImpl extends UnicastRemoteObject implements Node {
 	 * ask node n (this) to find the successor of id
 	 */
 	public synchronized NodeImpl findSuccessor(int id) {
+        System.out.println("id before closestprocnode "+id);
+        System.out.println("bornes : between " + (this.id /* aka n */ + 1) +" and " + this.getSuccessor().getId() );
+        System.out.println("");
 		if (ifNodeIn(id, this.id /* aka n */ + 1, this.getSuccessor().getId())) {
 			return this.getSuccessor();
 		} else {
 			NodeImpl x = this.closestPrecedingNode(id);
+            System.out.println("X in find successor"+x.getId());
+            System.out.println("id in find successor"+id);
+            System.out.println("this in find successor"+this.id);
+            System.out.println("");
 			return x.findSuccessor(id);
 		}
 	}
@@ -266,9 +273,9 @@ public class NodeImpl extends UnicastRemoteObject implements Node {
 	// ///////////////// //
 	public synchronized String toString() {
 		String res = "<NODE: " + id + ", PRED: "
-				+ ((this.getPredecessor() == this ||  this.getPredecessor() == null) ? null : this.getPredecessor().getId())
+				+ ((this.getPredecessor() == this /*||  this.getPredecessor() == null*/) ? id : this.getPredecessor().getId())
 				+ ", SUCC: "
-				+ (this.getSuccessor() == this ? null : this.getSuccessor().getId()) + "> ";
+				+ (this.getSuccessor() == this ? id : this.getSuccessor().getId()) + "> ";
 		res += "\n\tFingers Table: ";
 		if (fingersTable[1] != null) {
 			res += "[";
